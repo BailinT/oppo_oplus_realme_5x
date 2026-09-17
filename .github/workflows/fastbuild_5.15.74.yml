@@ -610,8 +610,11 @@ jobs:
               printf '%s\n' "$OUT" | tail -40
               break
             fi
-            mkdir -p "$(dirname "$MISS")"
+            DIRN="$(dirname "$MISS")"
+            if [ ! -d "$DIRN" ]; then rm -f "$DIRN"; fi
+            mkdir -p "$DIRN"
             : > "$MISS"
+            [ -f "$DIRN/Makefile" ] || : > "$DIRN/Makefile"
             echo "已 stub 缺失 Kconfig: $MISS (第 $i 轮)"
           done
           if [ "$DEFCONFIG_OK" != "1" ]; then
