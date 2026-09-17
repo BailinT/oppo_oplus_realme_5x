@@ -301,6 +301,8 @@ jobs:
             cp ./susfs4ksu/kernel_patches/include/linux/* ./common/include/linux/
             cd ./common
             patch -p1 -F 3 < 50_add_susfs_in_gki-${{ env.ANDROID_VERSION }}-${{ env.KERNEL_VERSION }}.patch || true
+            # 修复 ShirkNeko 5.10 补丁缺陷: statfs.c:88 的调用先于 extern 声明(声明在同文件后面的 hunk), 把声明补进 susfs_def.h include 之后
+            sed -i 's|#include <linux/susfs_def.h>|#include <linux/susfs_def.h>\n#ifdef CONFIG_KSU_SUSFS_SUS_KSTAT\nextern int susfs_sus_kstat_spoof_vfs_statfs(struct inode *inode, struct kstatfs *buf, bool *is_fuse);\n#endif|' fs/statfs.c
             cd ..
           else
             echo "已选择无内置KernelSU模式，跳过susfs配置..."
