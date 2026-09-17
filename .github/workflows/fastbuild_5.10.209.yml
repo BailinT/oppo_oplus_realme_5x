@@ -599,7 +599,7 @@ jobs:
           # 注意: bash set -e 对 && 链前半段失败会豁免(模板原写法 defconfig 失败步骤仍假成功), 改为显式处理
           # 通用自愈: 部分树的 Kconfig 引用开源仓不存在的 vendor 目录(如天玑 kernel/oplus_perf_sched/Kconfig), 自动建空 stub 重试
           DEFCONFIG_OK=0
-          for i in 1 2 3 4 5 6 7 8 9 10; do
+          for i in $(seq 1 40); do
             if OUT=$(make -j$(nproc --all) LLVM=1 ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC="ccache clang" LD="ld.lld" HOSTLD=ld.lld O=out KCFLAGS+=-O2 KCFLAGS+=-Wno-error gki_defconfig 2>&1); then
               DEFCONFIG_OK=1
               echo "$OUT" | tail -3
@@ -610,11 +610,17 @@ jobs:
               printf '%s\n' "$OUT" | tail -40
               break
             fi
-            DIRN="$(dirname "$MISS")"
-            if [ ! -d "$DIRN" ]; then rm -f "$DIRN"; fi
-            mkdir -p "$DIRN"
+            # 逐组件清障: 路径上任何悬空链接/文件都先删(如 drivers/power 本身是悬空链接)
+            P=""
+            IFS='/' read -r -a SEGS <<< "$(dirname "$MISS")"
+            for SEG in "${SEGS[@]}"; do
+              P="${P}${SEG}"
+              if { [ -e "$P" ] || [ -L "$P" ]; } && [ ! -d "$P" ]; then rm -f "$P"; fi
+              mkdir -p "$P"
+              P="${P}/"
+            done
             : > "$MISS"
-            [ -f "$DIRN/Makefile" ] || : > "$DIRN/Makefile"
+            [ -f "$(dirname "$MISS")/Makefile" ] || : > "$(dirname "$MISS")/Makefile"
             echo "已 stub 缺失 Kconfig: $MISS (第 $i 轮)"
           done
           if [ "$DEFCONFIG_OK" != "1" ]; then
