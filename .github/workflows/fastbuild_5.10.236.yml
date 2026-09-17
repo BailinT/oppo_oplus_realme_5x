@@ -148,11 +148,19 @@ jobs:
           echo "所有源码及llvm-Clang20工具链初始化完成！"
           echo "正在修复官方 common 仓的死链(软链指向未开源的vendor目录)..."
           # drivers/soc/Makefile 引用 obj-y += oplus/storage/，官方仓此路径是指向 vendor 的死链，用设备树仓的真实文件替换
-          rm -f common/drivers/soc/oplus/storage
-          cp -r devicetree/vendor/oplus/kernel/storage common/drivers/soc/oplus/storage
+          if [ -d devicetree/vendor/oplus/kernel/storage ]; then
+            rm -f common/drivers/soc/oplus/storage
+            cp -r devicetree/vendor/oplus/kernel/storage common/drivers/soc/oplus/storage
+          else
+            echo "devicetree 仓无 storage 替换源, 跳过"
+          fi
           # init/Kconfig 引用 source "kernel/oplus_cpu/sched/Kconfig"，官方仓 kernel/oplus_cpu 是死链，用设备树仓的 cpu 目录替换
-          rm -f common/kernel/oplus_cpu
-          cp -r devicetree/vendor/oplus/kernel/cpu common/kernel/oplus_cpu
+          if [ -d devicetree/vendor/oplus/kernel/cpu ]; then
+            rm -f common/kernel/oplus_cpu
+            cp -r devicetree/vendor/oplus/kernel/cpu common/kernel/oplus_cpu
+          else
+            echo "devicetree 仓无 cpu 替换源, 跳过"
+          fi
           # 修复 ABI 符号列表死链(build.config.gki.aarch64 的 ADDITIONAL_KMI_SYMBOL_LISTS 引用)
           curl -sL --max-time 30 "https://raw.githubusercontent.com/oppo-source/android_kernel_common_oppo_sm8475/oppo/sm8475_v_15.0.0_find_n2/android/abi_gki_aarch64_oplus_internal" -o common/android/abi_gki_aarch64_oplus_internal || true
           # 清理源码里的残留死链软链(build.config.msm.* 指向 msm-kernel 仓, gki_defconfig 编译不需要; 断链文件留着不碍事, 但删除以防 Kbuild 扫描)
@@ -305,6 +313,11 @@ jobs:
             sed -i 's|#include <linux/susfs_def.h>|#include <linux/susfs_def.h>\n#ifdef CONFIG_KSU_SUSFS_SUS_KSTAT\nextern int susfs_sus_kstat_spoof_vfs_statfs(struct inode *inode, struct kstatfs *buf, bool *is_fuse);\n#endif|' fs/statfs.c
             # 修复 ShirkNeko 5.10 susfs.c 缺 <linux/security.h> include(284 行调用 security_sb_statfs, sm8475 树无传递包含; CONFIG_SECURITY=y 走声明/n 走内联 stub, 补 include 两态皆可用)
             sed -i 's|#include <linux/fs.h>|#include <linux/fs.h>\n#include <linux/security.h>|' fs/susfs.c
+            # 修复 ShirkNeko 5.x 补丁从高版本内核抄的 hunk: task_mmu.c 调 VMA_PAD_START(补丁无定义; 新代际树自带宏, 老树无)
+            if grep -q "VMA_PAD_START(vma)" fs/proc/task_mmu.c && ! grep -rq "define VMA_PAD_START" include/; then
+              sed -i 's|end = VMA_PAD_START(vma);|end = vma->vm_end;|' fs/proc/task_mmu.c
+              echo "已修复 task_mmu.c 的 VMA_PAD_START(改用 vma->vm_end)"
+            fi
             cd ..
           else
             echo "已选择无内置KernelSU模式，跳过susfs配置..."
@@ -579,7 +592,28 @@ jobs:
           sudo rm -rf /usr/local/lib/android &
           sudo rm -rf /opt/ghc &
           sudo rm -rf /opt/hostedtoolcache/CodeQL &
-          make -j$(nproc --all) LLVM=1 ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC="ccache clang" LD="ld.lld" HOSTLD=ld.lld O=out KCFLAGS+=-O2 KCFLAGS+=-Wno-error gki_defconfig &&
+          # 注意: bash set -e 对 && 链前半段失败会豁免(模板原写法 defconfig 失败步骤仍假成功), 改为显式处理
+          # 通用自愈: 部分树的 Kconfig 引用开源仓不存在的 vendor 目录(如天玑 kernel/oplus_perf_sched/Kconfig), 自动建空 stub 重试
+          DEFCONFIG_OK=0
+          for i in 1 2 3 4 5 6 7 8 9 10; do
+            if OUT=$(make -j$(nproc --all) LLVM=1 ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC="ccache clang" LD="ld.lld" HOSTLD=ld.lld O=out KCFLAGS+=-O2 KCFLAGS+=-Wno-error gki_defconfig 2>&1); then
+              DEFCONFIG_OK=1
+              echo "$OUT" | tail -3
+              break
+            fi
+            MISS=$(printf '%s\n' "$OUT" | grep -o 'open file "[^"]*"' | head -1 | cut -d'"' -f2)
+            if [ -z "$MISS" ]; then
+              printf '%s\n' "$OUT" | tail -40
+              break
+            fi
+            mkdir -p "$(dirname "$MISS")"
+            : > "$MISS"
+            echo "已 stub 缺失 Kconfig: $MISS (第 $i 轮)"
+          done
+          if [ "$DEFCONFIG_OK" != "1" ]; then
+            echo "gki_defconfig 配置失败(见上方输出)"
+            exit 1
+          fi
           make -j$(nproc --all) LLVM=1 ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC="$(pwd)/cc-wrapper" LD="$(pwd)/ld-wrapper" HOSTLD=ld.lld O=out KCFLAGS+=-O2 KCFLAGS+=-Wno-error Image
           
           # 编译后时间劫持二次校验
