@@ -150,6 +150,9 @@ jobs:
           # drivers/soc/Makefile 引用 obj-y += oplus/storage/，官方仓此路径是指向 vendor 的死链，用设备树仓的真实文件替换
           rm -f common/drivers/soc/oplus/storage
           cp -r devicetree/vendor/oplus/kernel/storage common/drivers/soc/oplus/storage
+          # init/Kconfig 引用 source "kernel/oplus_cpu/sched/Kconfig"，官方仓 kernel/oplus_cpu 是死链，用设备树仓的 cpu 目录替换
+          rm -f common/kernel/oplus_cpu
+          cp -r devicetree/vendor/oplus/kernel/cpu common/kernel/oplus_cpu
           # 修复 ABI 符号列表死链(build.config.gki.aarch64 的 ADDITIONAL_KMI_SYMBOL_LISTS 引用)
           curl -sL --max-time 30 "https://raw.githubusercontent.com/oppo-source/android_kernel_common_oppo_sm8475/oppo/sm8475_v_15.0.0_find_n2/android/abi_gki_aarch64_oplus_internal" -o common/android/abi_gki_aarch64_oplus_internal || true
           # 清理源码里的残留死链软链(build.config.msm.* 指向 msm-kernel 仓, gki_defconfig 编译不需要; 断链文件留着不碍事, 但删除以防 Kbuild 扫描)
