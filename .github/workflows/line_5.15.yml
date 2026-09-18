@@ -8,6 +8,8 @@ name: "内核构建 - Linux 5.15（4 个子版本: 74/123/167/180）"
 
 permissions:
   contents: write
+  actions: write
+  packages: write
 
 on:
   workflow_dispatch:

@@ -8,6 +8,8 @@ name: "内核构建 - Linux 6.12（6 个子版本: 23/23_gki/23_mtk/38/58/58_mtk
 
 permissions:
   contents: write
+  actions: write
+  packages: write
 
 on:
   workflow_dispatch:

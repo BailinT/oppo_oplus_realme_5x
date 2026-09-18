@@ -8,6 +8,8 @@ name: "内核构建 - Linux 5.10（8 个子版本: 66/110/149/168/198/209/226/23
 
 permissions:
   contents: write
+  actions: write
+  packages: write
 
 on:
   workflow_dispatch:
