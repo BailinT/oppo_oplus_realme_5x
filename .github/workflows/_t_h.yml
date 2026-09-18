@@ -1,4 +1,12 @@
-name: "T-modC"
+# T-H: fastbuild on-seg + minimal job
+name: "T-H fastbuild-onseg minimal-job"
+env:
+  TZ: Asia/Shanghai
+  ANDROID_VERSION: 'android12'
+  KERNEL_VERSION: '5.10'
+  SUB_VERSION: '66'
+  KERNEL_NAME: 'android12-9-o-g5.10.66'
+  CCACHE_KEY: ccache-ecsv4-5.10.66
 on:
   workflow_call:
     inputs:
@@ -67,8 +75,13 @@ on:
         required: false
         type: string
         default: ''
+permissions:
+  contents: write
 jobs:
-  e:
+  build:
     runs-on: ubuntu-latest
+    permissions:
+      actions: write
+      contents: read
     steps:
-      - run: echo T-modC ok
+      - run: echo TH ok
