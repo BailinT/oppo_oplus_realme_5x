@@ -1,4 +1,4 @@
-name: "T-B uses-call test"
+name: "T-D call modC(required+default)"
 on:
   workflow_dispatch:
     inputs:
@@ -8,9 +8,9 @@ on:
         type: string
         default: ''
 jobs:
-  v66:
+  v1:
     if: ${{ inputs.only_sub_level == '' || inputs.only_sub_level == '66' }}
-    uses: ./.github/workflows/fastbuild_5.10.66.yml
+    uses: ./.github/workflows/_t_mod_c.yml
     with:
         ksu_type: ${{ inputs.ksu_type }}
         susfs_enable: ${{ inputs.susfs_enable }}
