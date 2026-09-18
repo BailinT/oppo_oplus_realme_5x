@@ -46,6 +46,7 @@ OPPO/一加/真我 老平台 GKI 内核自动化编译（照 cctv18 三仓的 fa
 
 - [x] fastbuild_5.10.236.yml（sm8475 样板）— ✅ 2026-09-18 跑绿（run 35250898100），AK3/release 产物抽验通过
 - [x] 其余 11 个 x（2026-09-18 批量生成，源分支全部 ls-remote + Makefile 实测核对）
+- [x] 已跑绿 4 条：5.10.236 / 5.10.226 / 5.10.209 / 5.10.149（其余 8 条第五轮修复中：老树 inotify helper / strict-prototypes 降级 / sm8550 ThinLTO+3G swap）
 - [ ] hwid 校验版
 
 ## 首跑选源表（实测：ls-remote 分支 + 抓 Makefile 读 SUBLEVEL）

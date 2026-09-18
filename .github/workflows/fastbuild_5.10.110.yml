@@ -320,6 +320,11 @@ jobs:
               sed -i 's|end = VMA_PAD_START(vma);|end = vma->vm_end;|' fs/proc/task_mmu.c
               echo "已修复 task_mmu.c 的 VMA_PAD_START(改用 vma->vm_end)"
             fi
+            # 修复 ShirkNeko 5.10 补丁在 66/110 老树上的缺陷: fdinfo.c 新增代码调用 inotify_mark_user_mask, 而老树 fs/notify/inotify/inotify.h 无此 helper(149+ 树自带)
+            if ! grep -q "inotify_mark_user_mask" fs/notify/inotify/inotify.h; then
+              printf '%s\n' '' '/* INOTIFY_USER_MASK: 暴露给用户态的 mask 位集合(与 149+ 树同款 helper, 66/110 老树缺失) */' '#define INOTIFY_USER_MASK (IN_ALL_EVENTS | IN_ONESHOT | IN_EXCL_UNLINK)' '' 'static inline __u32 inotify_mark_user_mask(struct fsnotify_mark *fsn_mark)' '{' '    return fsn_mark->mask & INOTIFY_USER_MASK;' '}' >> fs/notify/inotify/inotify.h
+              echo "已为老树 inotify.h 补 inotify_mark_user_mask helper"
+            fi
             cd ..
           else
             echo "已选择无内置KernelSU模式，跳过susfs配置..."
@@ -625,7 +630,8 @@ jobs:
             echo "gki_defconfig 配置失败(见上方输出)"
             exit 1
           fi
-          make -j$(nproc --all) LLVM=1 ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC="$(pwd)/cc-wrapper" LD="$(pwd)/ld-wrapper" HOSTLD=ld.lld O=out KCFLAGS+=-O2 KCFLAGS+=-Wno-error Image
+          # 修复老树(66/110/168/198) K&R 空参函数撞树自带 -Werror=strict-prototypes: 通用 -Wno-error 因更具体优先规则压不住, 需特化降级
+          make -j$(nproc --all) LLVM=1 ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC="$(pwd)/cc-wrapper" LD="$(pwd)/ld-wrapper" HOSTLD=ld.lld O=out KCFLAGS+=-O2 KCFLAGS+=-Wno-error KCFLAGS+=-Wno-error=strict-prototypes Image
           
           # 编译后时间劫持二次校验
           echo "--- 编译后环境时间: $(LD_PRELOAD=$PRELOAD_LIBS date) ---"

@@ -595,6 +595,11 @@ jobs:
           sudo rm -rf /opt/ghc &
           sudo rm -rf /opt/hostedtoolcache/CodeQL &
           # 注意: bash set -e 对 && 链前半段失败会豁免(模板原写法 defconfig 失败步骤仍假成功), 改为显式处理
+          # 修复 168/198 树 ufshpb.c 的 K&R 空参函数定义(clang20 -Werror=strict-prototypes; 与文件内前置声明的 (void) 保持一致)
+          if [ -f drivers/scsi/ufs/ufshpb.c ]; then
+            sed -i 's/^static int ufshpb_get_mm_lv()/static int ufshpb_get_mm_lv(void)/' drivers/scsi/ufs/ufshpb.c
+            sed -i 's/^static long ufshpb_page_cnt()/static long ufshpb_page_cnt(void)/' drivers/scsi/ufs/ufshpb.c
+          fi
           # 通用自愈: 部分树的 Kconfig 引用开源仓不存在的 vendor 目录(如天玑 kernel/oplus_perf_sched/Kconfig), 自动建空 stub 重试
           DEFCONFIG_OK=0
           for i in $(seq 1 40); do
@@ -625,7 +630,8 @@ jobs:
             echo "gki_defconfig 配置失败(见上方输出)"
             exit 1
           fi
-          make -j$(nproc --all) LLVM=1 ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC="$(pwd)/cc-wrapper" LD="$(pwd)/ld-wrapper" HOSTLD=ld.lld O=out KCFLAGS+=-O2 KCFLAGS+=-Wno-error Image
+          # 修复老树(66/110/168/198) K&R 空参函数撞树自带 -Werror=strict-prototypes: 通用 -Wno-error 因更具体优先规则压不住, 需特化降级
+          make -j$(nproc --all) LLVM=1 ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC="$(pwd)/cc-wrapper" LD="$(pwd)/ld-wrapper" HOSTLD=ld.lld O=out KCFLAGS+=-O2 KCFLAGS+=-Wno-error KCFLAGS+=-Wno-error=strict-prototypes Image
           
           # 编译后时间劫持二次校验
           echo "--- 编译后环境时间: $(LD_PRELOAD=$PRELOAD_LIBS date) ---"
