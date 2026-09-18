@@ -1,0 +1,20 @@
+name: "T-L call TJ+TK"
+on:
+  workflow_dispatch:
+    inputs:
+      t1:
+        description: t
+        required: false
+        type: string
+        default: ''
+jobs:
+  a:
+    uses: ./.github/workflows/_t_j.yml
+    with:
+        t1: ${{ inputs.t1 }}
+    secrets: inherit
+  b:
+    uses: ./.github/workflows/_t_k.yml
+    with:
+        t1: ${{ inputs.t1 }}
+    secrets: inherit

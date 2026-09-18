@@ -1,0 +1,21 @@
+name: "T-J modC+env"
+env:
+  TZ: Asia/Shanghai
+  ANDROID_VERSION: 'android12'
+  KERNEL_VERSION: '5.10'
+  SUB_VERSION: '66'
+  KERNEL_NAME: 'android12-9-o-g5.10.66'
+  CCACHE_KEY: ccache-ecsv4-5.10.66
+on:
+  workflow_call:
+    inputs:
+      t1:
+        description: t
+        required: false
+        type: string
+        default: ''
+jobs:
+  e:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo TJ ok
