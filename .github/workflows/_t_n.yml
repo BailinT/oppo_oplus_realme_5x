@@ -1,0 +1,15 @@
+name: "T-N call TK only"
+on:
+  workflow_dispatch:
+    inputs:
+      t1:
+        description: t
+        required: false
+        type: string
+        default: ''
+jobs:
+  a:
+    uses: ./.github/workflows/_t_k.yml
+    with:
+        t1: ${{ inputs.t1 }}
+    secrets: inherit

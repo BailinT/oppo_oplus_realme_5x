@@ -1,4 +1,4 @@
-name: "T-L call TJ+TK"
+name: "T-M call TJ only"
 on:
   workflow_dispatch:
     inputs:
@@ -10,11 +10,6 @@ on:
 jobs:
   a:
     uses: ./.github/workflows/_t_j.yml
-    with:
-        t1: ${{ inputs.t1 }}
-    secrets: inherit
-  b:
-    uses: ./.github/workflows/_t_k.yml
     with:
         t1: ${{ inputs.t1 }}
     secrets: inherit
