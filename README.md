@@ -1,21 +1,21 @@
-# 欧加真 5.x 内核快速构建（5.10 / 5.15）
+# 欧加真全版本内核快速构建（5.10 / 5.15 / 6.1 / 6.6 / 6.12）
 
-OPPO/一加/真我 老平台 GKI 内核自动化编译（照 cctv18 三仓的 fastbuild 模式）。
+OPPO/一加/真我 GKI 内核自动化编译（照 cctv18 三仓的 fastbuild 模式），**5.10-6.12 全版本合并到一个仓**。
 
 ## 支持的内核版本
 
 ### 5.10.x（android12-5.10，KMI gen 9）
 
-| x | 平台 | 覆盖机型 | 官方源码分支 |
-|---|---|---|---|
-| 5.10.66 | mt6895 / sm8450 | 一加10R、Ace Race、一加10Pro | oneplus/mt6895_s_12.1_* 、sm8450_s_12.1_10_pro |
-| 5.10.110 | mt6895 / mt6983 | Ace Racing、Ace 2V | oneplus/mt6895_t_13.0.0 、mt6983_t_13.0 |
-| 5.10.149 | mt6895 / mt6983 | Ace、Ace Racing、一加平板、Nord 3 | 13.1 分支 |
-| 5.10.168 | mt6895 / mt6983 | 10R、Ace、Ace Race、Ace 2V | 14.0 分支 |
-| 5.10.198 | mt6983 | Nord 3 5G | oneplus_mt6983_u_14.0.0_nord_3_5g |
-| 5.10.209 | mt6895 / mt6983 / sm8450 / sm8475 | 10R、一加平板、一加10Pro、一加11R、Ace Pro | u_14.0.0 / v_15.0.0 分支 |
-| 5.10.226 | mt6983 / sm8450 / sm8475 | Ace 2V、Nord 3、一加平板、一加10Pro、Ace 2、Ace Pro、一加11R | v_15.0.0 分支 |
-| 5.10.236 | mt6895 / mt6983 / sm8450 / sm8475 | Ace、Ace Race、Ace 2V、Nord 3、一加平板、一加10Pro、Ace 2、一加11R、一加10T | b_16.0.0 / v_15.0.0 分支 |
+| x | 平台 | 覆盖机型 |
+|---|---|---|
+| 5.10.66 | mt6895 / sm8450 | 一加10R、Ace Race、一加10Pro |
+| 5.10.110 | mt6895 / mt6983 | Ace Racing、Ace 2V |
+| 5.10.149 | mt6895 / mt6983 | Ace、Ace Racing、一加平板、Nord 3 |
+| 5.10.168 | mt6895 / mt6983 | 10R、Ace、Ace Race、Ace 2V |
+| 5.10.198 | mt6983 | Nord 3 5G |
+| 5.10.209 | mt6895 / mt6983 / sm8450 / sm8475 | 10R、一加平板、一加10Pro、一加11R、Ace Pro |
+| 5.10.226 | mt6983 / sm8450 / sm8475 | Ace 2V、Nord 3、一加平板、一加10Pro、Ace 2、Ace Pro、一加11R |
+| 5.10.236 | mt6895 / mt6983 / sm8450 / sm8475 | Ace、Ace Race、Ace 2V、Nord 3、一加平板、一加10Pro、Ace 2、一加11R、一加10T |
 
 ### 5.15.x（android13-5.15，KMI gen 8）
 
@@ -26,43 +26,58 @@ OPPO/一加/真我 老平台 GKI 内核自动化编译（照 cctv18 三仓的 fa
 | 5.15.167 | sm8550 | 一加11、Ace 2 Pro、Ace 3、一加12R、OnePlus Open（ColorOS 15） |
 | 5.15.180 | sm8550 / sm7550 / mt6985 | 一加11、Ace 2 Pro、Ace 3、一加12R、Open、Nord CE4、Find X6、Find N3 Flip（ColorOS 16） |
 
+### 6.1.x（android14-6.1）— 合并自 sm8650 仓
+
+| x | 覆盖机型 |
+|---|---|
+| 6.1.57 / 6.1.75 / 6.1.115 / 6.1.118 / 6.1.128 / 6.1.134 / 6.1.141 / 6.1.157 | 一加12、Ace 3、Ace 3 Pro、Ace 5、Nord 4 等 sm8650 平台（含天玑特供变体） |
+
+### 6.6.x（android15-6.6）— 合并自 sm8750 仓
+
+| x | 覆盖机型 |
+|---|---|
+| 6.6.30 / 6.6.50 / 6.6.56 / 6.6.57 / 6.6.66 / 6.6.89 / 6.6.118 | 一加13、Ace 5 Pro、Find X8 等 sm8750 平台（`_mtk` 后缀 = 天玑特供变体） |
+
+### 6.12.x（android16-6.12）— 合并自 sm8850 仓
+
+| x | 覆盖机型 |
+|---|---|
+| 6.12.23 / 6.12.38 / 6.12.58 | 一加15、Ace 6、Find X9 等 sm8850 平台（`_mtk`/`_gki` 后缀 = 天玑/GKI 变体） |
+
 ## 编译方式
 
-- 源码：OnePlusOSS 官方 common 仓（gki_defconfig + make LLVM=1）
-- 死链修复：官方 common 仓的 `drivers/soc/oplus/storage` 等是指向未开源 vendor 的死链，
-  workflow 内自动从 `android_kernel_modules_and_devicetree_*` 仓拉取真实文件替换
-- SUSFS：ShirkNeko/susfs4ksu（gki-android12-5.10 / gki-android13-5.15 分支）
-- 工具链：Clang 20（r547379）
+- 源码：OnePlusOSS 官方 common 仓 + cctv18 三仓（6.x 用 cctv18 预修版）
+- 死链修复：官方 common 仓的 `drivers/soc/oplus/storage` 等是指向未开源 vendor 的死链，workflow 内自动替换
+- SUSFS：ShirkNeko/susfs4ksu（5.x）/ cctv18/susfs4oki（6.x）
+- 工具链：Clang 20（5.10/5.15/6.1）、Clang 18（6.6）、Clang 19（6.12）
 - 产物：AK3 包（AnyKernel3）
 
-## 与 cctv18 三仓的差异
+## 资源目录结构（版本化）
 
-1. SUSFS 源不同：cctv18 的 susfs4oki 无 5.x 分支，改用 ShirkNeko/susfs4ksu
-2. 新增 vendor-fix 步骤：官方 common 仓死链修复（cctv18 是在自家源码仓里预先修好的）
-3. 暂不支持 Droidspaces（ntsync 为 6.6+ 特性）
-4. 5.10 专用的 CVE 补丁暂缺（cve-2026-43499 补丁为 6.1 专用）
+```
+lib/                      # 公共（ccache / fakestat）
+other_patch/              # 按版本命名（cve-*-6.1.patch / 6.6 / 6.12 共存）
+droidspaces_patch/        # 按版本命名共存；6.12/ 子目录放 6.12 专属 evdi
+zram_patch/
+  ├── 001-lz4.patch ...   # 6.1 套（5.10/5.15/6.1 共用，与 sm8650 字节一致）
+  ├── 6.6/                # 6.6 套
+  └── 6.12/               # 6.12 套 + zram.zip
+zram.zip                  # 6.1/6.6 共用（字节相同）
+```
 
 ## 状态
 
-- [x] fastbuild_5.10.236.yml（sm8475 样板）— ✅ 2026-09-18 跑绿（run 35250898100），AK3/release 产物抽验通过
-- [x] 其余 11 个 x（2026-09-18 批量生成，源分支全部 ls-remote + Makefile 实测核对）
-- [x] 已跑绿 4 条：5.10.236 / 5.10.226 / 5.10.209 / 5.10.149（其余 8 条第五轮修复中：老树 inotify helper / strict-prototypes 降级 / sm8550 ThinLTO+3G swap）
-- [ ] hwid 校验版
+- [x] 5.10 全 8 个 x — ✅ 12/12 绿（含 LTO/CFI 修复）
+- [x] 5.15 全 4 个 x — ✅ 全绿
+- [x] 6.1 全 8 个 x — 合并入库（源自 sm8650 仓，已验证）
+- [x] 6.6 全 9 个 x — 合并入库（源自 sm8750 仓，已验证）
+- [x] 6.12 全 6 个 x — 合并入库（源自 sm8850 仓，已验证）
+- [ ] 合并后验证构建（3 个代表 x）
+- [ ] hwid 校验版（`oppo_oplus_realme_all-hwid`）
 
-## 首跑选源表（实测：ls-remote 分支 + 抓 Makefile 读 SUBLEVEL）
+## 与 cctv18 三仓的差异
 
-| workflow | 平台(芯片) | 官方源码分支（实测 = 该 x） | 替换源仓 |
-|---|---|---|---|
-| fastbuild_5.10.66.yml | mt6895(天玑8100) | android_kernel_5.10_oneplus_mt6895 @ `oneplus/mt6895_s_12.1_oneplus_10r` = 5.10.66 | vendor_mediatek_kernel_modules_mt6895 @ 同名分支（仅 cpu 有替换源，storage 条件跳过） |
-| fastbuild_5.10.110.yml | mt6895(天玑8100) | android_kernel_5.10_oneplus_mt6895 @ `oneplus/mt6895_t_13.0.0` = 5.10.110 | 同上 |
-| fastbuild_5.10.149.yml | mt6895(天玑8100) | android_kernel_5.10_oneplus_mt6895 @ `mt6895_t_13.1.0_oneplus_ace` = 5.10.149（注意无 oneplus/ 前缀） | 同上 |
-| fastbuild_5.10.168.yml | mt6895(天玑8100) | android_kernel_5.10_oneplus_mt6895 @ `oneplus/mt6895_u_14.0.0_ace` = 5.10.168 | 同上 |
-| fastbuild_5.10.198.yml | mt6983(天玑9000) | android_kernel_5.10_oneplus_mt6983 @ `oneplus_mt6983_u_14.0.0_nord_3_5g` = 5.10.198（无前缀） | android_kernel_modules_oneplus_mt6983 @ 同名分支（storage+cpu 全有） |
-| fastbuild_5.10.209.yml | sm8475(骁龙8+Gen1) | android_kernel_common_oneplus_sm8475 @ `oneplus/sm8475_u_14.0.0_oneplus_11r_5g` = 5.10.209 | devicetree_sm8475 @ 同名分支 |
-| fastbuild_5.10.226.yml | sm8475(骁龙8+Gen1) | android_kernel_common_oneplus_sm8475 @ `oneplus/sm8475_v_15.0.0_ace_2` = 5.10.226 | 同上 |
-| fastbuild_5.15.74.yml | sm8550(骁龙8 Gen2) | android_kernel_common_oneplus_sm8550 @ `oneplus/sm8550_t_13.1.0_oneplus11` = 5.15.74 | devicetree_sm8550 @ 同名分支 |
-| fastbuild_5.15.123.yml | sm8550(骁龙8 Gen2) | android_kernel_common_oneplus_sm8550 @ `oneplus/sm8550_u_14.0.0_oneplus11` = 5.15.123 | 同上 |
-| fastbuild_5.15.167.yml | sm8550(骁龙8 Gen2) | android_kernel_common_oneplus_sm8550 @ `oneplus/sm8550_v_15.0.0_ace_2_pro` = 5.15.167 | 同上 |
-| fastbuild_5.15.180.yml | sm8550(骁龙8 Gen2) | android_kernel_common_oneplus_sm8550 @ `oneplus/sm8550_b_16.0.0_ace_2_pro` = 5.15.180 | 同上（Nord CE4=sm7550、Find X6=mt6985 变体待加） |
-
-实测补充：sm8450 @ `oneplus/sm8450_s_12.1_10_pro` 也是 5.10.66（10Pro 变体待加）；sm7550 b_16/v_15 均 = 5.15.180；mt6983 u_14 有 168(ace_2v)/198(nord3) 两条；mt6895 v_15 混有 209/236 两条；mt6985 无 5.15 源仓。SUSFS 5.15 用 ShirkNeko `gki-android13-5.15`（补丁实测存在）。天玑树 vendor-fix 全条件式（死链存在且替换源存在才动）。
+1. 5.x 的 SUSFS 源不同：cctv18 的 susfs4oki 无 5.x 分支，改用 ShirkNeko/susfs4ksu
+2. 5.x 新增 vendor-fix 步骤（cctv18 在自家源码仓里预先修好）
+3. 5.x 不支持 Droidspaces（ntsync 为 6.6+ 特性）
+4. 5.10 的 LTO/CFI 修复：5.10 树 `HAS_LTO_CLANG` 依赖 `LLVM_IAS=1`，已加并强制 ThinLTO（对齐 Action-Build 产物形态）
